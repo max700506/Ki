@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // Use the Function constructor as a safer alternative to eval().
-            // It doesn't have access to the local scope.
             const result = new Function(`return ${sanitizedExpression}`)();
             
             // Ensure the result is a finite number.
@@ -37,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return result;
         } catch (error) {
-            // If the expression is syntactically incorrect (e.g., "5 * * 5"), catch the error.
             console.error("Calculation error:", error);
             return 'error';
         }
@@ -51,26 +49,22 @@ document.addEventListener('DOMContentLoaded', () => {
         messages.forEach(msg => {
             const isUser = msg.sender === 'user';
             
-            // Create the outer container for the message bubble
             const messageWrapper = document.createElement('div');
             messageWrapper.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
 
-            // Create the message bubble itself
             const messageBubble = document.createElement('div');
             messageBubble.className = `max-w-xs md:max-w-md px-4 py-2 rounded-2xl ${isUser ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`;
             messageBubble.textContent = msg.text;
 
-            // Append the bubble to its wrapper and the wrapper to the chat feed
             messageWrapper.appendChild(messageBubble);
             chatFeed.appendChild(messageWrapper);
         });
         
-        // Automatically scroll to the latest message
         chatFeed.scrollTop = chatFeed.scrollHeight;
     }
 
     /**
-     * Adds a new message to the history, saves it to the browser cache, and re-renders the chat.
+     * Adds a new message to the history, saves it, and re-renders the chat.
      * @param {string} sender - 'user' or 'ai'.
      * @param {string} text - The message content.
      */
@@ -81,17 +75,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     /**
-     * Generates and adds the AI's response to the chat.
+     * **[NEU]** Generates and adds the AI's response to the chat.
+     * Checks for conversational phrases before attempting to calculate.
      * @param {string} userInput - The text entered by the user.
      */
     function generateAiResponse(userInput) {
-        const result = calculate(userInput);
-        
-        if (result !== 'error') {
-            addMessage('ai', `Das Ergebnis ist: ${result}`);
+        const lowerCaseInput = userInput.toLowerCase().trim();
+        let response = '';
+
+        // 1. Check for specific conversational phrases
+        if (lowerCaseInput.includes('wie gehts') || lowerCaseInput.includes('wie geht es dir')) {
+            response = 'Danke der Nachfrage! Als KI habe ich keine Gefühle, aber ich bin voll funktionsfähig und bereit, dir zu helfen. 😊';
+        } else if (lowerCaseInput.includes('danke') || lowerCaseInput.includes('dankeschön')) {
+            response = 'Gern geschehen! Womit kann ich sonst noch helfen?';
+        } else if (lowerCaseInput === 'hallo' || lowerCaseInput === 'hi' || lowerCaseInput === 'hey') {
+            response = 'Hallo! Du kannst mir eine Rechenaufgabe stellen.';
+        } else if (lowerCaseInput.includes('wer bist du')) {
+            response = 'Ich bin ein einfacher KI-Chatbot, der aktuell darauf spezialisiert ist, mathematische Aufgaben zu lösen.';
         } else {
-            addMessage('ai', 'Ich kann im Moment nur mathematische Ausdrücke berechnen. Versuche es doch mal mit "5 * 5" oder "(10+2)/3".');
+            // 2. If no phrase matches, try to calculate
+            const result = calculate(userInput);
+            if (result !== 'error') {
+                response = `Das Ergebnis ist: ${result}`;
+            } else {
+                // 3. If calculation fails, give a default response
+                response = 'Das habe ich nicht verstanden. Ich kann im Moment hauptsächlich rechnen. Versuche es doch mal mit "5 * (10 + 2)".';
+            }
         }
+        
+        addMessage('ai', response);
     }
 
     // --- Event Handlers ---
@@ -101,13 +113,13 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {Event} event - The form submission event.
      */
     function handleSendMessage(event) {
-        event.preventDefault(); // Prevent the default page reload on form submission
+        event.preventDefault();
         const userInput = messageInput.value.trim();
         
-        if (userInput === '') return; // Don't send empty messages
+        if (userInput === '') return;
 
         addMessage('user', userInput);
-        messageInput.value = ''; // Clear the input field
+        messageInput.value = '';
 
         // Simulate AI "thinking" for a better user experience
         setTimeout(() => {
@@ -133,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cachedMessages) {
             messages = JSON.parse(cachedMessages);
         } else {
-            // If no history exists, add a default welcome message from the AI.
             messages.push({
                 sender: 'ai',
                 text: 'Hallo! Stell mir eine Rechenaufgabe.'
@@ -142,11 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- Initialization ---
-    
-    // Attach the event listener to the form
     chatForm.addEventListener('submit', handleSendMessage);
-    
-    // Load messages from cache and render them as soon as the app starts
     loadMessagesFromCache();
     renderMessages();
 });
