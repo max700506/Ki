@@ -18,19 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
      * @returns {number | string} - The result of the calculation or an 'error' string.
      */
     function calculate(expression) {
-        // Allow only numbers, operators, parentheses, and dots to prevent security risks.
         const sanitizedExpression = expression.replace(/[^0-9+\-*/().\s]/g, '');
         
-        // If forbidden characters were removed, it's not a valid math expression.
         if (sanitizedExpression !== expression || sanitizedExpression.trim() === '') {
             return 'error';
         }
         
         try {
-            // Use the Function constructor as a safer alternative to eval().
             const result = new Function(`return ${sanitizedExpression}`)();
             
-            // Ensure the result is a finite number.
             if (typeof result !== 'number' || !isFinite(result)) {
                 return 'error';
             }
@@ -45,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Renders all messages from the `messages` array into the chat feed.
      */
     function renderMessages() {
-        chatFeed.innerHTML = ''; // Clear the chat feed before rendering
+        chatFeed.innerHTML = '';
         messages.forEach(msg => {
             const isUser = msg.sender === 'user';
             
@@ -75,8 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     /**
-     * **[NEU]** Generates and adds the AI's response to the chat.
-     * Checks for conversational phrases before attempting to calculate.
+     * **[ERWEITERT]** Generates and adds the AI's response to the chat.
+     * Checks for a wider range of conversational phrases and topics.
      * @param {string} userInput - The text entered by the user.
      */
     function generateAiResponse(userInput) {
@@ -87,19 +83,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (lowerCaseInput.includes('wie gehts') || lowerCaseInput.includes('wie geht es dir')) {
             response = 'Danke der Nachfrage! Als KI habe ich keine Gefühle, aber ich bin voll funktionsfähig und bereit, dir zu helfen. 😊';
         } else if (lowerCaseInput.includes('danke') || lowerCaseInput.includes('dankeschön')) {
-            response = 'Gern geschehen! Womit kann ich sonst noch helfen?';
-        } else if (lowerCaseInput === 'hallo' || lowerCaseInput === 'hi' || lowerCaseInput === 'hey') {
-            response = 'Hallo! Du kannst mir eine Rechenaufgabe stellen.';
-        } else if (lowerCaseInput.includes('wer bist du')) {
-            response = 'Ich bin ein einfacher KI-Chatbot, der aktuell darauf spezialisiert ist, mathematische Aufgaben zu lösen.';
+            response = 'Gern geschehen! Wenn du noch etwas brauchst, sag einfach Bescheid.';
+        } else if (lowerCaseInput === 'hallo' || lowerCaseInput === 'hi' || lowerCaseInput === 'hey' || lowerCaseInput === 'servus') {
+            response = 'Hallo! Wie kann ich dir heute helfen? Du kannst mir eine Rechenaufgabe stellen oder einfach nur plaudern.';
+        } else if (lowerCaseInput.includes('wer bist du') || lowerCaseInput.includes('was bist du')) {
+            response = 'Ich bin ein KI-Chatbot. Meine Hauptaufgabe ist es, mathematische Ausdrücke zu berechnen, aber ich lerne ständig dazu.';
+        } else if (lowerCaseInput.includes('was kannst du tun') || lowerCaseInput.includes('was sind deine fähigkeiten')) { // NEU
+            response = 'Ich kann für dich rechnen! Gib einfach eine mathematische Aufgabe ein. Außerdem kann ich ein paar einfache Fragen beantworten und dir einen Witz erzählen.';
+        } else if (lowerCaseInput.includes('erzähl mir einen witz') || lowerCaseInput.includes('kennst du einen witz')) { // NEU
+            const jokes = [
+                "Warum hat der Mathematiker seine Hose nass gemacht? Weil er die Wurzel aus -1 gezogen hat!",
+                "Was ist die Lieblingsspeise eines Programmierers? Ein Bit-Menü.",
+                "Treffen sich zwei Magneten. Sagt der eine: 'Was soll ich heute bloß anziehen?'",
+                "Warum können Geister so schlecht lügen? Weil man direkt durch sie hindurchsieht!"
+            ];
+            response = jokes[Math.floor(Math.random() * jokes.length)];
+        } else if (lowerCaseInput.includes('wie alt bist du')) { // NEU
+            response = 'Ich existiere nur als Code und habe kein Alter im menschlichen Sinne. Aber ich wurde erst kürzlich programmiert!';
+        } else if (lowerCaseInput.includes('tschüss') || lowerCaseInput.includes('auf wiedersehen') || lowerCaseInput.includes('bis dann')) { // NEU
+            response = 'Bis bald! Zögere nicht, wiederzukommen, wenn du Hilfe brauchst. 👋';
         } else {
             // 2. If no phrase matches, try to calculate
             const result = calculate(userInput);
             if (result !== 'error') {
                 response = `Das Ergebnis ist: ${result}`;
             } else {
-                // 3. If calculation fails, give a default response
-                response = 'Das habe ich nicht verstanden. Ich kann im Moment hauptsächlich rechnen. Versuche es doch mal mit "5 * (10 + 2)".';
+                // 3. If calculation fails, give a more helpful default response
+                response = 'Das habe ich nicht ganz verstanden. Du kannst mich zum Beispiel Folgendes fragen:\n\n• "5 * (10 + 2)"\n• "Wer bist du?"\n• "Erzähl mir einen witz"';
             }
         }
         
@@ -147,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             messages.push({
                 sender: 'ai',
-                text: 'Hallo! Stell mir eine Rechenaufgabe.'
+                text: 'Hallo! Stell mir eine Rechenaufgabe oder frag mich etwas.'
             });
         }
     }
