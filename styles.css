@@ -1,0 +1,24 @@
+/* Custom styles */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Ensure the chat feed scrolls to the bottom smoothly */
+#chat-feed {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for a cleaner look in Webkit-browsers (Chrome, Safari) */
+#chat-feed::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chat-feed::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#chat-feed::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 20px;
+    border: transparent;
+}
